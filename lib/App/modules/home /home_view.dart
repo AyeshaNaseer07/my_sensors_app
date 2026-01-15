@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ui_design/App/modules/selfie_click/home_screen.dart';
+import 'package:ui_design/App/modules/selfie_click/unauthorized_attepmt.dart';
 import 'package:ui_design/App/modules/sensors/anti_theft/anti_theft_view.dart';
 import 'package:ui_design/App/modules/sensors/bluetooth_sensor/bluetooth_view.dart';
 import 'package:ui_design/App/modules/sensors/clap_whistle_detect/clap_detect_view.dart';
@@ -7,7 +7,6 @@ import 'package:ui_design/App/modules/sensors/headphone/headphone_view.dart';
 import 'package:ui_design/App/modules/sensors/motion_sensor/motion_view.dart';
 import 'package:ui_design/App/modules/sensors/power_sensor/power_view.dart';
 import 'package:ui_design/App/modules/sensors/proximity_sensor/proximity_sensor_view.dart';
-import 'package:ui_design/App/modules/sensors/wifi_sensor/wifi_sensor_view.dart';
 
 class SensorHubPage extends StatelessWidget {
   const SensorHubPage({super.key});
@@ -40,13 +39,13 @@ class SensorHubPage extends StatelessWidget {
             Colors.red,
             MotionSensorView(),
           ),
-          sensorCard(
-            context,
-            "Wi-Fi",
-            Icons.wifi,
-            Colors.blue,
-            WifiAlarmPage(),
-          ),
+          // sensorCard(
+          //   context,
+          //   "Wi-Fi",
+          //   Icons.wifi,
+          //   Colors.blue,
+          //   WifiAlarmPage(),
+          // ),
           sensorCard(
             context,
             "Bluetooth",
@@ -80,7 +79,7 @@ class SensorHubPage extends StatelessWidget {
             "View Unauthorized Attempts",
             Icons.person_off_outlined,
             Colors.blueGrey,
-            const HomeViewScreen(),
+            const UnauthorizedAttemptsScreen(),
           ),
         ],
       ),

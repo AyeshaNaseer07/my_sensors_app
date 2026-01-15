@@ -30,28 +30,31 @@ class _ProximitySensorViewState extends State<ProximitySensorView> {
     _proximitySub = ProximitySensor.events.listen((int event) {
       bool near = (event > 0);
 
-      if (!isArmed) return; // only react if armed
+      if (!isArmed) return;
 
       setState(() => isNear = near);
 
-      // Trigger alarm only once
       if (near && !alarmTriggered) {
-        AlarmService().playAlarm();
-        alarmTriggered = true; // alarm is now triggered
+        _triggerAlarm();
       }
-
-      // DO NOT stop alarm when far
-      // Previously: else { AlarmService().stopAlarm(); }
     });
   }
 
-  void toggleAlarm() {
-    setState(() => isArmed = !isArmed);
+  void _triggerAlarm() {
+    if (alarmTriggered) return;
+    alarmTriggered = true;
+    AlarmService().playAlarm();
+    debugPrint("🚨 PROXIMITY ALARM TRIGGERED");
+    setState(() {});
+  }
 
-    if (!isArmed) {
-      // Stop alarm and reset trigger
+  void toggleAlarm() {
+    if (isArmed) {
       AlarmService().stopAlarm();
       alarmTriggered = false;
+      setState(() => isArmed = false);
+    } else {
+      setState(() => isArmed = true);
     }
   }
 

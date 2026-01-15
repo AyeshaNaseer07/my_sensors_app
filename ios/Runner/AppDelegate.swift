@@ -23,49 +23,11 @@ import LocalAuthentication
         initializeBluetoothManager(controller: controller)
         initializeChargerManager(controller: controller)
         initializeAudioDetector(controller: controller)
-        initializeBiometricChannel(controller: controller)
-        initializeCameraChannel(controller: controller)
 
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
 
-    private func initializeBiometricChannel(controller: FlutterViewController) {
-        let biometricChannel = FlutterMethodChannel(
-            name: "com.example.biometric/authenticate",
-            binaryMessenger: controller.binaryMessenger
-        )
-        
-        biometricChannel.setMethodCallHandler { (call: FlutterMethodCall, result: @escaping FlutterResult) in
-            switch call.method {
-            case "authenticate":
-                let reason = call.arguments as? String ?? "Authenticate to continue"
-                BiometricHandler.shared.authenticate(reason: reason) { success in
-                    result(success)
-                }
-            default:
-                result(FlutterMethodNotImplemented)
-            }
-        }
-    }
-
-    private func initializeCameraChannel(controller: FlutterViewController) {
-        let cameraChannel = FlutterMethodChannel(
-            name: "com.example.camera/capture",
-            binaryMessenger: controller.binaryMessenger
-        )
-        
-        cameraChannel.setMethodCallHandler { (call: FlutterMethodCall, result: @escaping FlutterResult) in
-            switch call.method {
-            case "captureSelfie":
-                NativeCameraHandler.shared.captureSelfieDirect { success in
-                    result(success)
-                }
-            default:
-                result(FlutterMethodNotImplemented)
-            }
-        }
-    }
-
+   
     private func initializeWifiManager(controller: FlutterViewController) {
         let wifiMethodChannel = FlutterMethodChannel(
             name: "wifi.alarm/channel",

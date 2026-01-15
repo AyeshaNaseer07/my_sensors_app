@@ -5,7 +5,6 @@ import 'package:proximity_sensor/proximity_sensor.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:ui_design/App/service/alarm_service.dart';
-import 'package:ui_design/App/modules/selfie_click/lock_screen_view.dart';
 
 class AntiTheftView extends StatefulWidget {
   const AntiTheftView({super.key});
@@ -18,7 +17,6 @@ class _AntiTheftViewState extends State<AntiTheftView> {
   // Common flags
   bool isArmed = false;
   bool alarmTriggered = false;
-  bool _isLoading = false;
 
   // Proximity sensor
   bool isNear = false;
@@ -39,18 +37,21 @@ class _AntiTheftViewState extends State<AntiTheftView> {
   @override
   void initState() {
     super.initState();
-    AlarmService();
 
+    // ✅ MUST
+    AlarmService().init();
+
+    // ✅ ONLY ONCE
     iosAlarmChannel.setMethodCallHandler((call) async {
-      if (call.method == "motionDetected" && isArmed && !alarmTriggered) {
-        _triggerAlarm();
+      if (call.method == "motionDetected") {
+        if (isArmed && !alarmTriggered) {
+          _triggerAlarm();
+        }
       }
     });
 
-    // Proximity sensor listener
     _startProximityListener();
 
-    // Local accelerometer listener for foreground motion detection
     // ignore: deprecated_member_use
     _accelSub = accelerometerEvents.listen((event) {
       x = event.x;
@@ -59,14 +60,16 @@ class _AntiTheftViewState extends State<AntiTheftView> {
 
       if (!isArmed || alarmTriggered) return;
 
-      double dx = (x - baseX).abs();
-      double dy = (y - baseY).abs();
-      double dz = (z - baseZ).abs();
+      final dx = (x - baseX).abs();
+      final dy = (y - baseY).abs();
+      final dz = (z - baseZ).abs();
 
       if (dx > thresholdX || dy > thresholdY || dz > thresholdZ) {
         _triggerAlarm();
       }
-      setState(() {});
+
+      // ❌ DON'T spam UI
+      if (mounted) setState(() {});
     });
   }
 
@@ -82,146 +85,35 @@ class _AntiTheftViewState extends State<AntiTheftView> {
   }
 
   void _triggerAlarm() {
+    if (alarmTriggered) return; // ✅ VERY IMPORTANT
+
     alarmTriggered = true;
     AlarmService().playAlarm();
-    setState(() {});
+
+    if (mounted) setState(() {});
   }
 
-  Future<void> _activateAlarm() async {
-    try {
-      debugPrint("🔓 Activating anti-theft alarm (no auth required)...");
-
+  void toggleAlarm() async {
+    if (isArmed) {
+      // 🔴 Turning OFF
       setState(() {
-        _isLoading = true;
+        isArmed = false;
+        alarmTriggered = false;
       });
 
-      // Set motion base values
-      baseX = x;
-      baseY = y;
-      baseZ = z;
-
-      // Start iOS background service with timeout
-      try {
-        await iosAlarmChannel
-            .invokeMethod("startAlarmService")
-            .timeout(
-              const Duration(seconds: 3),
-              onTimeout: () {
-                debugPrint(
-                  "⚠️ iOS method timeout, but continuing with local activation",
-                );
-                return null;
-              },
-            );
-      } catch (e) {
-        debugPrint("⚠️ iOS method error: $e, but continuing");
-      }
-
-      if (mounted) {
-        setState(() {
-          isArmed = true;
-          alarmTriggered = false;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      debugPrint("Error activating alarm: $e");
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Error: $e")));
-      }
-    }
-  }
-
-  Future<void> _deactivateAlarm() async {
-    try {
-      debugPrint("🔐 Deactivating anti-theft alarm (requires auth)...");
-
-      if (!mounted) return;
-
-      final result = await showDialog<bool>(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => LockScreen(
-          isDeactivationMode: true,
-          onUnlock: () {
-            debugPrint("✅ onUnlock callback triggered");
-          },
-        ),
-      );
-
-      if (!mounted) return;
-
-      if (result == true) {
-        debugPrint("🔓 Auth successful - deactivating anti-theft alarm");
-
-        setState(() {
-          _isLoading = true;
-        });
-
-        try {
-          // Stop alarm
-          AlarmService().stopAlarm();
-
-          // Stop iOS service with timeout
-          try {
-            await iosAlarmChannel
-                .invokeMethod("stopAlarmService")
-                .timeout(
-                  const Duration(seconds: 3),
-                  onTimeout: () {
-                    debugPrint(
-                      "⚠️ iOS method timeout, but continuing with deactivation",
-                    );
-                    return null;
-                  },
-                );
-          } catch (e) {
-            debugPrint("⚠️ iOS method error: $e, but continuing");
-          }
-
-          if (!mounted) return;
-
-          setState(() {
-            isArmed = false;
-            alarmTriggered = false;
-            _isLoading = false;
-          });
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("✅ Anti-theft alarm deactivated successfully"),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        } catch (e) {
-          debugPrint("❌ Error: $e");
-
-          if (!mounted) return;
-
-          setState(() {
-            _isLoading = false;
-          });
-
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text("Error: $e")));
-        }
-      } else {
-        debugPrint("❌ Auth failed / dialog dismissed");
-      }
-    } catch (e, stack) {
-      debugPrint("💥 Error in deactivation flow: $e");
-      debugPrint("$stack");
-
+      AlarmService().stopAlarm();
+      await iosAlarmChannel.invokeMethod("stopAlarmService");
+    } else {
+      // 🟢 Turning ON
       setState(() {
-        _isLoading = false;
+        isArmed = true;
+        alarmTriggered = false;
+        baseX = x;
+        baseY = y;
+        baseZ = z;
       });
+
+      await iosAlarmChannel.invokeMethod("startAlarmService");
     }
   }
 
@@ -229,7 +121,10 @@ class _AntiTheftViewState extends State<AntiTheftView> {
   void dispose() {
     _proximitySub?.cancel();
     _accelSub.cancel();
+
     AlarmService().stopAlarm();
+    iosAlarmChannel.invokeMethod("stopAlarmService");
+
     super.dispose();
   }
 
@@ -275,10 +170,9 @@ class _AntiTheftViewState extends State<AntiTheftView> {
                       ),
                     ),
                     SizedBox(height: 20.h),
+
                     ElevatedButton(
-                      onPressed: _isLoading
-                          ? null
-                          : (isArmed ? _deactivateAlarm : _activateAlarm),
+                      onPressed: toggleAlarm,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
@@ -289,27 +183,14 @@ class _AntiTheftViewState extends State<AntiTheftView> {
                           borderRadius: BorderRadius.circular(30),
                         ),
                       ),
-                      child: _isLoading
-                          ? SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation(
-                                  isArmed ? Colors.redAccent : Colors.green,
-                                ),
-                              ),
-                            )
-                          : Text(
-                              isArmed ? "DE-ACTIVATE" : "ACTIVATE",
-                              style: TextStyle(
-                                color: isArmed
-                                    ? Colors.redAccent
-                                    : Colors.green,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                      child: Text(
+                        isArmed ? "DE-ACTIVATE" : "ACTIVATE",
+                        style: TextStyle(
+                          color: isArmed ? Colors.redAccent : Colors.green,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -331,33 +212,11 @@ class _AntiTheftViewState extends State<AntiTheftView> {
                 _axisTile("Z", z, thresholdZ, Colors.red),
               ],
             ),
-            SizedBox(height: 40.h),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.shade200),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    "📱 Alarm Rules",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    " Proximity: Move hand near sensor when screen is on → Alarm triggers."
-                    "\n"
-                    " Motion: Keep phone in pocket or on table. Sudden movement triggers alarm when screen is on and locked both.",
-                    style: TextStyle(fontSize: 13, height: 1.6),
-                  ),
-                ],
-              ),
+            SizedBox(height: 20.h),
+            const Text(
+              "Proximity: Move hand near sensor when screen is on → Alarm triggers.\n"
+              "Motion: Keep phone in pocket or on table. Sudden movement triggers alarm when screen is on and locked both.",
+              textAlign: TextAlign.center,
             ),
           ],
         ),

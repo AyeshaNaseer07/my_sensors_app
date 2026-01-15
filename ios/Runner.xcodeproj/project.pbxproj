@@ -11,14 +11,12 @@
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
-		7A30400F2F163E92000F5A6E /* BiometricHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A30400E2F163E84000F5A6E /* BiometricHandler.swift */; };
 		7A56E3AB2F0F96B900A0170A /* ClapWhistleDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A56E3AA2F0F969800A0170A /* ClapWhistleDetector.swift */; };
 		7A56E3AD2F0F974900A0170A /* WifiAlarmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A56E3AC2F0F974600A0170A /* WifiAlarmManager.swift */; };
 		7A56E3AF2F0F976900A0170A /* BluetoothAlarmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A56E3AE2F0F976400A0170A /* BluetoothAlarmManager.swift */; };
 		7A56E3B12F0F977D00A0170A /* ChargerAlarmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A56E3B02F0F977B00A0170A /* ChargerAlarmManager.swift */; };
 		7A922C042F0E272F000D7106 /* silent_alarm.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 7A922C032F0E272F000D7106 /* silent_alarm.mp3 */; };
 		7A922C062F0E2743000D7106 /* fire_alarm.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 7A922C052F0E2743000D7106 /* fire_alarm.mp3 */; };
-		7AE743A22F1641AA00FDE5B6 /* NaitveCameraHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AE743A12F16419E00FDE5B6 /* NaitveCameraHandler.swift */; };
 		94EF93A83342782A708B134A /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 102EB583FC67345105F69F28 /* Pods_RunnerTests.framework */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
@@ -62,14 +60,12 @@
 		58D167663753C64F25940A8B /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		7A30400E2F163E84000F5A6E /* BiometricHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricHandler.swift; sourceTree = "<group>"; };
 		7A56E3AA2F0F969800A0170A /* ClapWhistleDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClapWhistleDetector.swift; sourceTree = "<group>"; };
 		7A56E3AC2F0F974600A0170A /* WifiAlarmManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WifiAlarmManager.swift; sourceTree = "<group>"; };
 		7A56E3AE2F0F976400A0170A /* BluetoothAlarmManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothAlarmManager.swift; sourceTree = "<group>"; };
 		7A56E3B02F0F977B00A0170A /* ChargerAlarmManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChargerAlarmManager.swift; sourceTree = "<group>"; };
 		7A922C032F0E272F000D7106 /* silent_alarm.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = silent_alarm.mp3; sourceTree = "<group>"; };
 		7A922C052F0E2743000D7106 /* fire_alarm.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = fire_alarm.mp3; sourceTree = "<group>"; };
-		7AE743A12F16419E00FDE5B6 /* NaitveCameraHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaitveCameraHandler.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
@@ -171,8 +167,6 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
-				7AE743A12F16419E00FDE5B6 /* NaitveCameraHandler.swift */,
-				7A30400E2F163E84000F5A6E /* BiometricHandler.swift */,
 				7A56E3B02F0F977B00A0170A /* ChargerAlarmManager.swift */,
 				7A56E3AE2F0F976400A0170A /* BluetoothAlarmManager.swift */,
 				7A56E3AC2F0F974600A0170A /* WifiAlarmManager.swift */,
@@ -422,9 +416,7 @@
 			files = (
 				7A56E3AF2F0F976900A0170A /* BluetoothAlarmManager.swift in Sources */,
 				7A56E3AD2F0F974900A0170A /* WifiAlarmManager.swift in Sources */,
-				7AE743A22F1641AA00FDE5B6 /* NaitveCameraHandler.swift in Sources */,
 				7A56E3B12F0F977D00A0170A /* ChargerAlarmManager.swift in Sources */,
-				7A30400F2F163E92000F5A6E /* BiometricHandler.swift in Sources */,
 				7A56E3AB2F0F96B900A0170A /* ClapWhistleDetector.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,

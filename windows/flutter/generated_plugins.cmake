@@ -7,6 +7,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   battery_plus
   connectivity_plus
   flutter_blue_plus_winrt
+  local_auth_windows
   permission_handler_windows
 )
 

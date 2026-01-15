@@ -13,6 +13,7 @@ class UnauthorizedAttemptsScreen extends StatefulWidget {
 class _UnauthorizedAttemptsScreenState
     extends State<UnauthorizedAttemptsScreen> {
   List<File> _selfies = [];
+  bool _isLoading = true; // ✅ FIXED: Track loading state
 
   @override
   void initState() {
@@ -22,6 +23,10 @@ class _UnauthorizedAttemptsScreenState
 
   Future<void> _loadSelfies() async {
     try {
+      setState(() {
+        _isLoading = true; // ✅ FIXED: Show loading indicator
+      });
+
       final appDir = await getApplicationDocumentsDirectory();
       final dir = Directory('${appDir.path}/unauthorized_attempts');
 
@@ -38,11 +43,64 @@ class _UnauthorizedAttemptsScreenState
 
         setState(() {
           _selfies = files;
+          _isLoading = false; // ✅ FIXED: Hide loading indicator
+        });
+      } else {
+        setState(() {
+          _selfies = [];
+          _isLoading = false;
         });
       }
     } catch (e) {
-      debugPrint('Error loading selfies: $e');
+      print('Error loading selfies: $e');
+      setState(() {
+        _isLoading = false;
+      });
     }
+  }
+
+  // ✅ FIXED: Added confirmation dialog for delete
+  void _confirmDelete(File file, int index) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('🗑️ Delete Attempt?'),
+        content: Text(
+          'Are you sure you want to delete this unauthorized attempt?\n\n'
+          'This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.blue)),
+          ),
+          TextButton(
+            onPressed: () {
+              try {
+                file.deleteSync();
+                Navigator.pop(context);
+                _loadSelfies(); // Reload list after delete
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('✅ Attempt deleted successfully'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } catch (e) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('❌ Error deleting file: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -52,19 +110,92 @@ class _UnauthorizedAttemptsScreenState
         title: Text('Unauthorized Attempts (${_selfies.length})'),
         backgroundColor: Colors.red,
         actions: [
-          IconButton(icon: Icon(Icons.refresh), onPressed: _loadSelfies),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadSelfies,
+            tooltip: 'Refresh',
+          ),
+          // ✅ FIXED: Added delete all button
+          if (_selfies.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.delete_sweep),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('🗑️ Delete All?'),
+                    content: Text(
+                      'Are you sure you want to delete all ${_selfies.length} attempts?\n\n'
+                      'This action cannot be undone.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          try {
+                            for (var file in _selfies) {
+                              file.deleteSync();
+                            }
+                            Navigator.pop(context);
+                            _loadSelfies();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  '✅ All attempts deleted successfully',
+                                ),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          } catch (e) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('❌ Error: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                        child: const Text(
+                          'Delete All',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              tooltip: 'Delete All',
+            ),
         ],
       ),
-      body: _selfies.isEmpty
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _selfies.isEmpty
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.check_circle, size: 80, color: Colors.green),
+                  Icon(
+                    Icons.check_circle,
+                    size: 80,
+                    color: Colors.green.shade400,
+                  ),
                   SizedBox(height: 20),
                   Text(
                     'No unauthorized attempts',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Your account is secure! 🔒',
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
                 ],
               ),
@@ -94,44 +225,70 @@ class _UnauthorizedAttemptsScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.red, // only here
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(12),
-                            topRight: Radius.circular(12),
-                            // bottomLeft and bottomRight default to 0
-                          ),
-                        ),
+                        color: Colors.red.withOpacity(0.1),
+                        padding: EdgeInsets.all(12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               'Attempt #${index + 1}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                                color: Colors.red,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Text(
                               'Date: ${dateTime.day}/${dateTime.month}/${dateTime.year}',
-                              style: const TextStyle(fontSize: 13),
+                              style: TextStyle(fontSize: 13),
                             ),
                             Text(
-                              'Time: ${dateTime.hour}:${dateTime.minute}:${dateTime.second}',
-                              style: const TextStyle(fontSize: 13),
+                              'Time: ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}:${dateTime.second.toString().padLeft(2, '0')}',
+                              style: TextStyle(fontSize: 13),
                             ),
                           ],
                         ),
                       ),
-                      Image.file(
-                        file,
-                        width: double.infinity,
-                        height: 250,
-                        fit: BoxFit.cover,
+                      // ✅ FIXED: Added error handling for corrupted images
+                      ClipRRect(
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(4),
+                          bottomRight: Radius.circular(4),
+                        ),
+                        child: Image.file(
+                          file,
+                          width: double.infinity,
+                          height: 250,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            print('Error loading image: $error');
+                            return Container(
+                              color: Colors.grey[300],
+                              height: 250,
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.broken_image,
+                                      color: Colors.red,
+                                      size: 50,
+                                    ),
+                                    SizedBox(height: 10),
+                                    Text(
+                                      'Image corrupted or deleted',
+                                      style: TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                       Padding(
                         padding: EdgeInsets.all(12),
@@ -146,11 +303,41 @@ class _UnauthorizedAttemptsScreenState
                                     builder: (context) => Scaffold(
                                       appBar: AppBar(
                                         backgroundColor: Colors.black,
+                                        title: Text(
+                                          'Attempt #${index + 1}',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
                                       ),
                                       backgroundColor: Colors.black,
                                       body: Center(
                                         child: InteractiveViewer(
-                                          child: Image.file(file),
+                                          child: Image.file(
+                                            file,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                                  return Center(
+                                                    child: Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.broken_image,
+                                                          color: Colors.red,
+                                                          size: 80,
+                                                        ),
+                                                        SizedBox(height: 20),
+                                                        Text(
+                                                          'Failed to load image',
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -164,59 +351,9 @@ class _UnauthorizedAttemptsScreenState
                               ),
                             ),
                             ElevatedButton.icon(
-                              onPressed: () async {
-                                // Show confirmation dialog
-                                bool? confirmDelete = await showDialog<bool>(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Delete Image'),
-                                    content: const Text(
-                                      'Are you sure you want to delete this image permanently?',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.of(
-                                          context,
-                                        ).pop(false), // Cancel
-                                        child: const Text('No'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () => Navigator.of(
-                                          context,
-                                        ).pop(true), // Confirm
-                                        child: const Text('Yes'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-
-                                // If user confirmed, delete the file
-                                if (confirmDelete == true) {
-                                  try {
-                                    file.deleteSync();
-                                    _loadSelfies(); // reload list
-                                    // ignore: use_build_context_synchronously
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'File deleted successfully',
-                                        ),
-                                      ),
-                                    );
-                                  } catch (e) {
-                                    // ignore: use_build_context_synchronously
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Error deleting file: $e',
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                }
-                              },
-                              icon: const Icon(Icons.delete),
-                              label: const Text('Delete'),
+                              onPressed: () => _confirmDelete(file, index),
+                              icon: Icon(Icons.delete),
+                              label: Text('Delete'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
                               ),

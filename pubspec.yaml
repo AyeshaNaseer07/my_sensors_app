@@ -44,6 +44,8 @@ dependencies:
   headphones_detection: ^1.1.2
   permission_handler: ^12.0.1
   path_provider: ^2.1.5
+  local_auth: ^2.3.0
+  camera: ^0.11.3
 
 
 dev_dependencies:

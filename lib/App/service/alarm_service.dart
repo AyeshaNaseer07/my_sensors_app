@@ -26,11 +26,15 @@ class AlarmService {
 
     try {
       _isPlaying = true;
-      await _player.play(AssetSource('alarms/fire_alarm.mp3'));
-      debugPrint('🚨 Fire alarm playing!');
+
+      await _player.stop(); // safety
+      await _player.setReleaseMode(ReleaseMode.loop);
+      await _player.play(AssetSource('alarms/fire_alarm.mp3'), volume: 1.0);
+
+      debugPrint('🚨 Alarm looping started');
     } catch (e) {
-      debugPrint('❌ Error playing alarm: $e');
       _isPlaying = false;
+      debugPrint('❌ Error playing alarm: $e');
     }
   }
 

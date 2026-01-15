@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:ui_design/App/service/alarm_service.dart';
@@ -14,7 +13,6 @@ class MotionSensorView extends StatefulWidget {
 
 class _MotionSensorViewState extends State<MotionSensorView> {
   late StreamSubscription accelSub;
-  static const iosAlarmChannel = MethodChannel("ios_alarm");
 
   bool isArmed = false;
   bool alarmTriggered = false;
@@ -29,33 +27,19 @@ class _MotionSensorViewState extends State<MotionSensorView> {
   @override
   void initState() {
     super.initState();
-    AlarmService();
 
-    // iOS background motion trigger listener
-    iosAlarmChannel.setMethodCallHandler((call) async {
-      if (call.method == "motionDetected") {
-        setState(() {
-          alarmTriggered = true;
-        });
-        AlarmService().playAlarm();
-      }
-    });
+    AlarmService().init(); // ✅ VERY IMPORTANT
 
-    // Local accelerometer listener only for UI updates when screen ON
-
-    // ignore: deprecated_member_use
     accelSub = accelerometerEvents.listen((event) {
-      setState(() {
-        x = event.x;
-        y = event.y;
-        z = event.z;
-      });
+      x = event.x;
+      y = event.y;
+      z = event.z;
 
       if (!isArmed || alarmTriggered) return;
 
-      double dx = (x - baseX).abs();
-      double dy = (y - baseY).abs();
-      double dz = (z - baseZ).abs();
+      final dx = (x - baseX).abs();
+      final dy = (y - baseY).abs();
+      final dz = (z - baseZ).abs();
 
       if (dx > thresholdX || dy > thresholdY || dz > thresholdZ) {
         alarmTriggered = true;
@@ -64,29 +48,25 @@ class _MotionSensorViewState extends State<MotionSensorView> {
     });
   }
 
-  void toggleAlarm() async {
+  void toggleAlarm() {
     setState(() {
       isArmed = !isArmed;
       alarmTriggered = false;
     });
 
     if (isArmed) {
+      // Set base values for motion detection
       baseX = x;
       baseY = y;
       baseZ = z;
-
-      // Call iOS to start background audio + motion monitoring
-      await iosAlarmChannel.invokeMethod("startAlarmService");
     } else {
       AlarmService().stopAlarm();
-      await iosAlarmChannel.invokeMethod("stopAlarmService");
     }
   }
 
   @override
   void dispose() {
     accelSub.cancel();
-    iosAlarmChannel.invokeMethod("stopAlarmService");
     AlarmService().stopAlarm();
     super.dispose();
   }
@@ -139,19 +119,19 @@ class _MotionSensorViewState extends State<MotionSensorView> {
                       onPressed: toggleAlarm,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 50,
-                          vertical: 15,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 50.w,
+                          vertical: 15.h,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(30.r),
                         ),
                       ),
                       child: Text(
                         isArmed ? "DE-ACTIVATE" : "ACTIVATE",
                         style: TextStyle(
                           color: isArmed ? Colors.redAccent : Colors.green,
-                          fontSize: 18,
+                          fontSize: 18.sp,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -183,8 +163,8 @@ class _MotionSensorViewState extends State<MotionSensorView> {
                 border: Border.all(color: Colors.blue.shade200),
               ),
               child: Column(
-                children: [
-                  const Text(
+                children: const [
+                  Text(
                     "📱 Alarm Rule",
                     style: TextStyle(
                       fontSize: 16,
@@ -192,8 +172,8 @@ class _MotionSensorViewState extends State<MotionSensorView> {
                       color: Colors.blue,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
+                  SizedBox(height: 12),
+                  Text(
                     "Arm the alarm and keep your phone in pocket. Motion above thresholds will trigger alarm.",
                     style: TextStyle(fontSize: 13, height: 1.6),
                   ),
